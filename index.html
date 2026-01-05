@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ficha RPG - Level Up/Down Automático</title>
+    <title>Ficha RPG - XP Progressivo</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --primary: #58a6ff; --text: #c9d1d9; --accent: #238636; --border: #30363d; --save: #1f6feb;
@@ -24,28 +24,27 @@
 
         .xp-section { background: #0d1117; padding: 15px; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 20px; }
         .xp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .lvl-badge { background: var(--primary); color: #000; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1.1em; }
-        .xp-input-style { font-size: 1.2em !important; border-color: var(--primary) !important; text-align: center; }
+        .lvl-badge { background: var(--primary); color: #000; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1.2em; }
+        
+        .xp-calc-box { display: flex; gap: 10px; }
+        .xp-calc-box input { flex: 3; font-size: 1.2em; border-color: var(--primary); text-align: center; }
+        .btn-calc { flex: 1; background: var(--primary); color: black; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
 
-        .equip-list { display: flex; flex-direction: column; gap: 15px; }
-        .equip-card { background: #0d1117; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+        .equip-card { background: #0d1117; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 15px; }
         .equip-header { display: grid; grid-template-columns: 3fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
         .equip-header input { padding: 8px; font-size: 0.9em; text-align: center; }
         .equip-effect { font-size: 0.85em; background: #161b22 !important; border: 1px dashed #444 !important; color: #aaa; }
 
-        .xp-bar-container { background: #30363d; height: 12px; border-radius: 6px; margin-top: 10px; overflow: hidden; }
+        .xp-bar-container { background: #30363d; height: 12px; border-radius: 6px; margin-top: 15px; overflow: hidden; }
         .xp-bar-fill { background: linear-gradient(90deg, #238636, #2ea043); height: 100%; width: 0%; transition: width 0.5s; }
-        .xp-instructions { font-size: 0.7em; color: #8b949e; margin-top: 5px; font-style: italic; }
 
         .section-title { border-left: 4px solid var(--primary); padding-left: 10px; margin: 30px 0 10px; color: var(--primary); font-size: 0.9em; font-weight: bold; text-transform: uppercase; }
         .skill-card { background: #0d1117; padding: 12px; border-radius: 8px; margin-top: 8px; border: 1px solid var(--border); border-left: 4px solid var(--primary); }
         .skill-name { font-weight: bold; color: var(--primary); font-size: 0.95em; }
         .skill-desc { font-size: 0.85em; color: #8b949e; margin-top: 5px; }
-        .skill-lvl { float: right; font-size: 0.7em; background: #21262d; padding: 2px 6px; border-radius: 4px; color: var(--primary); }
 
-        .btn-reset { background: #f85149; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; margin-top: 25px; font-weight: bold; opacity: 0.8; }
-        .backup-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .btn-backup { background: var(--save); color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .backup-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .btn-action { border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; font-size: 0.8em; }
     </style>
 </head>
 <body>
@@ -54,18 +53,19 @@
     <h2>🛡️ FICHA DE BATALHA</h2>
 
     <div class="backup-btns">
-        <button class="btn-backup" onclick="exportarFicha()">📥 BAIXAR PERSONAGEM</button>
-        <button class="btn-backup" style="background: var(--accent)" onclick="document.getElementById('file-input').click()">📤 CARREGAR ARQUIVO</button>
-        <input type="file" id="file-input" style="display:none" accept=".json" onchange="importarFicha(event)">
+        <button class="btn-action" style="background:var(--save)" onclick="exportarFicha()">📥 SALVAR</button>
+        <button class="btn-action" style="background:var(--accent)" onclick="document.getElementById('file-input').click()">📤 CARREGAR</button>
+        <button class="btn-action" style="background:#f85149" onclick="resetar()">⚠️ RESET</button>
+        <input type="file" id="file-input" style="display:none" onchange="importarFicha(event)">
     </div>
 
     <div class="field-group">
-        <label>🌀 Nome do Participante</label>
-        <input type="text" id="part-name" placeholder="Digite seu nome..." oninput="salvar()">
+        <label>🌀 Participante</label>
+        <input type="text" id="part-name" oninput="salvar()">
     </div>
 
     <div class="field-group">
-        <label>😎 Classe do Personagem</label>
+        <label>😎 Classe</label>
         <select id="char-select" onchange="salvar()">
             <option value="DRUZION">DRUZION (Curandeiro)</option>
             <option value="GUILBERT">GUILBERT (Arqueiro)</option>
@@ -75,124 +75,116 @@
         </select>
     </div>
 
-    <!-- SEÇÃO DE XP E NÍVEL AUTOMÁTICO -->
+    <!-- SISTEMA DE XP CALCULADORA -->
     <div class="xp-section">
         <div class="xp-header">
-            <label>🔺 Nível Atual</label>
+            <label>🔺 Nível Calculado</label>
             <div class="lvl-badge" id="lvl-display">1</div>
         </div>
-        <label>✨ Gerenciar Experiência (XP)</label>
-        <input type="number" id="xp" value="0" class="xp-input-style" oninput="processarXP()">
-        <div class="xp-instructions">Digite valores altos para upar ou negativos para reduzir o nível.</div>
+        <label>✨ XP TOTAL (Aceita somas ex: 1500+500)</label>
+        <div class="xp-calc-box">
+            <input type="text" id="xp-input" value="0" placeholder="Ex: 1000+500 ou 1500-200">
+            <button class="btn-calc" onclick="calcularXP()">OK</button>
+        </div>
         
         <div class="xp-bar-container"><div class="xp-bar-fill" id="xp-fill"></div></div>
-        <div style="display:flex; justify-content: space-between; font-size: 0.75em; margin-top: 5px;">
-            <span>XP Atual: <b id="xp-status">0</b></span>
-            <span>Próximo Nível: <b id="xp-max">500</b></span>
+        <div style="display:flex; justify-content: space-between; font-size: 0.8em; margin-top: 8px;">
+            <span>No Nível: <b id="xp-atual-no-lvl">0</b> / <span id="xp-req-prox">500</span></span>
+            <span>XP Total: <b id="xp-total-display">0</b></span>
         </div>
     </div>
 
-    <div class="section-title">📊 Atributos Totais</div>
+    <div class="section-title">📊 Atributos</div>
     <div class="stats-grid">
-        <div class="stat-box total">
-            <span class="stat-label">💖 Vida Total</span>
-            <span class="stat-num" id="total-hp">0</span>
-        </div>
-        <div class="stat-box total">
-            <span class="stat-label">👊🏽 Dano Total</span>
-            <span class="stat-num" id="total-dmg">0</span>
-        </div>
-        <div class="stat-box">
-            <span class="stat-label">🛡️ Escudo</span>
-            <span class="stat-num" id="total-shd">0</span>
-        </div>
-        <div class="stat-box">
-            <span class="stat-label">💰 Ouro</span>
-            <input type="number" id="ouro" value="0" style="background:transparent; border:none; color:white; font-size:1.2em; font-weight:bold; text-align:center;" oninput="salvar()">
-        </div>
-        <div class="stat-box">
-            <span class="stat-label">💎 Diamantes</span>
-            <input type="number" id="diamante" value="0" style="background:transparent; border:none; color:#00ffcc; font-size:1.2em; font-weight:bold; text-align:center;" oninput="salvar()">
-        </div>
+        <div class="stat-box total"><span class="stat-label">💖 Vida</span><span class="stat-num" id="total-hp">0</span></div>
+        <div class="stat-box total"><span class="stat-label">👊🏽 Dano</span><span class="stat-num" id="total-dmg">0</span></div>
+        <div class="stat-box"><span class="stat-label">🛡️ Escudo</span><span class="stat-num" id="total-shd">0</span></div>
+        <div class="stat-box"><span class="stat-label">💰 Ouro</span><input type="number" id="ouro" oninput="salvar()"></div>
+        <div class="stat-box"><span class="stat-label">💎 Diam.</span><input type="number" id="diamante" oninput="salvar()"></div>
     </div>
 
-    <div class="section-title">🔶 Equipamentos Ativos</div>
-    <div class="equip-list" id="equip-container"></div>
+    <div class="section-title">🔶 Equipamentos</div>
+    <div id="equip-container"></div>
 
     <div class="section-title">🎒 Mochila</div>
-    <textarea id="mochila" placeholder="Itens guardados..." oninput="salvar()" style="min-height: 80px;"></textarea>
+    <textarea id="mochila" oninput="salvar()"></textarea>
 
     <div class="section-title">💫 Habilidades</div>
     <div id="skills-container"></div>
-
-    <button class="btn-reset" onclick="resetar()">⚠️ APAGAR FICHA (RESET)</button>
 </div>
 
 <script>
     const data = {
         chars: {
-            DRUZION: { hp: 90, dmg: 4, p: "AURA VERDE", pd: "Cura: recupera vida do aliado igual ao seu dano total." },
-            GUILBERT: { hp: 80, dmg: 8, p: "RESPEITO", pd: "Com 2 aliados ou menos, você não pode ser alvo." },
-            MELKYOR: { hp: 70, dmg: 12, p: "MANAMUNDO", pd: "Causa +10% de dano para cada aliado na batalha." },
-            SCAR: { hp: 60, dmg: 16, p: "CONTRAGOLPE", pd: "Dano par recebido causa 20% de volta ao atacante." },
-            DEWPEE: { hp: 50, dmg: 20, p: "MUNIÇÃO EXPLOSIVA", pd: "Causa 20% do dano a todos os aliados do oponente." }
+            DRUZION: { hp: 90, dmg: 4, p: "AURA VERDE", pd: "Cura aliado: vida recuperada = seu dano total." },
+            GUILBERT: { hp: 80, dmg: 8, p: "RESPEITO", pd: "Com 2 aliados ou menos, você não é alvo." },
+            MELKYOR: { hp: 70, dmg: 12, p: "MANAMUNDO", pd: "Causa +10% de dano para cada aliado." },
+            SCAR: { hp: 60, dmg: 16, p: "CONTRAGOLPE", pd: "Dano par recebido causa 20% de volta." },
+            DEWPEE: { hp: 50, dmg: 20, p: "MUNIÇÃO EXPLOSIVA", pd: "Causa 20% do dano em área nos inimigos." }
         },
         skills: [
             { lvl: 1, DRUZION: "REPOUSO / ALVO", GUILBERT: "CHUVA DE FLECHAS", MELKYOR: "VENENO MÁGICO", SCAR: "LÂMINA VAMPÍRICA", DEWPEE: "RECARREGAR" },
             { lvl: 4, DRUZION: "CURA FRACA", GUILBERT: "PRISMA ARCANO", MELKYOR: "RECARGA DE ENERGIA", SCAR: "UNIÃO AMISTOSA", DEWPEE: "TIRO DUPLO" },
-            { lvl: 7, DRUZION: "CONFUSÃO", GUILBERT: "GRITO DE GUERRA", MELKYOR: "CORROSÃO E DRENAGEM", SCAR: "MALDIÇÃO", DEWPEE: "BALA DE PRECISÃO" },
+            { lvl: 7, DRUZION: "CONFUSÃO", GUILBERT: "GRITO DE GUERRA", MELKYOR: "CORROSÃO", SCAR: "MALDIÇÃO", DEWPEE: "BALA DE PRECISÃO" },
             { lvl: 10, DRUZION: "DUETO", GUILBERT: "LÂMINA GIRATÓRIA", MELKYOR: "DUALIDADE", SCAR: "ARCO-ÍRIS", DEWPEE: "RAJADA FRENÉTICA" }
-            // O sistema aceita mais habilidades aqui...
         ]
     };
 
-    let nivelGlobal = 1;
+    let xpTotalGlobal = 0;
 
-    // Criar slots de equipamentos
     const equipContainer = document.getElementById('equip-container');
     for(let i=1; i<=4; i++) {
         equipContainer.innerHTML += `
             <div class="equip-card">
                 <div class="equip-header">
-                    <input type="text" id="eq_n_${i}" placeholder="Equipamento ${i}" oninput="salvar()">
+                    <input type="text" id="eq_n_${i}" placeholder="Nome" oninput="salvar()">
                     <input type="number" id="eq_h_${i}" placeholder="+HP" oninput="salvar()">
                     <input type="number" id="eq_d_${i}" placeholder="+DMG" oninput="salvar()">
                     <input type="number" id="eq_s_${i}" placeholder="+ESC" oninput="salvar()">
                 </div>
-                <input type="text" class="equip-effect" id="eq_e_${i}" placeholder="Efeito do item..." oninput="salvar()">
+                <input type="text" class="equip-effect" id="eq_e_${i}" placeholder="Efeito..." oninput="salvar()">
             </div>`;
     }
 
-    // === LÓGICA DE XP CUMULATIVO (UP E DOWN) ===
-    function processarXP() {
-        let xp = parseInt(document.getElementById('xp').value) || 0;
+    // === LÓGICA DE CÁLCULO DE XP E NÍVEL ===
+    function calcularXP() {
+        const input = document.getElementById('xp-input').value;
+        try {
+            // Remove espaços e calcula a expressão (ex: 1500+500 vira 2000)
+            const resultado = Function('"use strict";return (' + input + ')')();
+            xpTotalGlobal = Math.max(0, resultado);
+            document.getElementById('xp-input').value = xpTotalGlobal;
+            salvar();
+        } catch (e) {
+            alert("Erro no cálculo! Use apenas números, + ou -");
+        }
+    }
+
+    function calcularNivel(xpTotal) {
+        let lvl = 1;
+        let xpAcumuladoParaLvlAnterior = 0;
         
-        // Se XP for maior que o necessário para o nível atual, sobe
-        while (xp >= (nivelGlobal * 500)) {
-            xp -= (nivelGlobal * 500);
-            nivelGlobal++;
+        while (true) {
+            let xpParaProx = lvl * 500;
+            if (xpTotal >= xpAcumuladoParaLvlAnterior + xpParaProx) {
+                xpAcumuladoParaLvlAnterior += xpParaProx;
+                lvl++;
+            } else {
+                break;
+            }
         }
+        
+        let xpNoNivelAtual = xpTotal - xpAcumuladoParaLvlAnterior;
+        let xpNecessarioParaUp = lvl * 500;
 
-        // Se XP for menor que 0, desce nível (se não for lvl 1)
-        while (xp < 0 && nivelGlobal > 1) {
-            nivelGlobal--;
-            xp += (nivelGlobal * 500);
-        }
-
-        // Trava no nível 1 com 0 XP
-        if (nivelGlobal === 1 && xp < 0) xp = 0;
-
-        document.getElementById('xp').value = xp;
-        document.getElementById('lvl-display').innerText = nivelGlobal;
-        salvar();
+        return { lvl, xpNoNivelAtual, xpNecessarioParaUp };
     }
 
     function salvar() {
         const estado = {
             part: document.getElementById('part-name').value,
             char: document.getElementById('char-select').value,
-            lvl: nivelGlobal,
-            xp: parseInt(document.getElementById('xp').value) || 0,
+            xpTotal: xpTotalGlobal,
             ouro: document.getElementById('ouro').value,
             diamante: document.getElementById('diamante').value,
             mochila: document.getElementById('mochila').value,
@@ -207,81 +199,95 @@
                 e: document.getElementById(`eq_e_${i}`).value
             });
         }
-        localStorage.setItem('ficha_rpg_vAuto', JSON.stringify(estado));
+        localStorage.setItem('ficha_rpg_v7', JSON.stringify(estado));
         atualizarUI(estado);
     }
 
     function atualizarUI(s) {
         const charBase = data.chars[s.char];
+        const progresso = calcularNivel(s.xpTotal);
+        
+        // Atributos
         let bH = 0, bD = 0, bS = 0;
         s.equips.forEach(e => { bH += e.h; bD += e.d; bS += e.s; });
-
         document.getElementById('total-hp').innerText = charBase.hp + bH;
         document.getElementById('total-dmg').innerText = charBase.dmg + bD;
         document.getElementById('total-shd').innerText = bS;
 
-        const cap = s.lvl * 500;
-        document.getElementById('xp-status').innerText = s.xp;
-        document.getElementById('xp-max').innerText = cap;
-        document.getElementById('xp-fill').style.width = Math.min((s.xp / cap) * 100, 100) + "%";
+        // XP UI
+        document.getElementById('lvl-display').innerText = progresso.lvl;
+        document.getElementById('xp-atual-no-lvl').innerText = progresso.xpNoNivelAtual;
+        document.getElementById('xp-req-prox').innerText = progresso.xpNecessarioParaUp;
+        document.getElementById('xp-total-display').innerText = s.xpTotal;
+        document.getElementById('xp-fill').style.width = (progresso.xpNoNivelAtual / progresso.xpNecessarioParaUp * 100) + "%";
 
+        // Habilidades
         const container = document.getElementById('skills-container');
-        container.innerHTML = `<div class="skill-card" style="border-left-color: #f1e05a"><span class="skill-name">✨ PASSIVA: ${charBase.p}</span><div class="skill-desc">${charBase.pd}</div></div>`;
-        
+        container.innerHTML = `<div class="skill-card" style="border-left-color: #f1e05a"><b>✨ PASSIVA: ${charBase.p}</b><br><small>${charBase.pd}</small></div>`;
         data.skills.forEach(sk => {
-            if(s.lvl >= sk.lvl) {
-                container.innerHTML += `<div class="skill-card"><span class="skill-lvl">Lvl ${sk.lvl}+</span><span class="skill-name">⚔️ ${sk[s.char]}</span><div class="skill-desc">Habilidade desbloqueada.</div></div>`;
+            if(progresso.lvl >= sk.lvl) {
+                container.innerHTML += `<div class="skill-card"><b>⚔️ ${sk[s.char]}</b> <small>(Lvl ${sk.lvl})</small></div>`;
             }
         });
     }
 
-    // Funções de arquivo
     function exportarFicha() {
-        const estado = JSON.parse(localStorage.getItem('ficha_rpg_vAuto'));
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(estado, null, 2));
+        const estado = JSON.parse(localStorage.getItem('ficha_rpg_v7'));
+        const blob = new Blob([JSON.stringify(estado, null, 2)], {type : 'application/json'});
         const dl = document.createElement('a');
-        dl.setAttribute("href", dataStr);
-        dl.setAttribute("download", `ficha_${estado.part || 'personagem'}.json`);
+        dl.href = URL.createObjectURL(blob);
+        dl.download = `ficha_${estado.part || 'rpg'}.json`;
         dl.click();
     }
 
     function importarFicha(event) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = e => {
             const s = JSON.parse(e.target.result);
-            nivelGlobal = s.lvl || 1;
-            aplicarEstado(s);
+            xpTotalGlobal = s.xpTotal || 0;
+            document.getElementById('part-name').value = s.part || "";
+            document.getElementById('char-select').value = s.char || "DRUZION";
+            document.getElementById('xp-input').value = xpTotalGlobal;
+            document.getElementById('ouro').value = s.ouro || 0;
+            document.getElementById('diamante').value = s.diamante || 0;
+            document.getElementById('mochila').value = s.mochila || "";
+            s.equips.forEach((e, i) => {
+                document.getElementById(`eq_n_${i+1}`).value = e.n || "";
+                document.getElementById(`eq_h_${i+1}`).value = e.h || 0;
+                document.getElementById(`eq_d_${i+1}`).value = e.d || 0;
+                document.getElementById(`eq_s_${i+1}`).value = e.s || 0;
+                document.getElementById(`eq_e_${i+1}`).value = e.e || "";
+            });
             salvar();
         };
         reader.readAsText(event.target.files[0]);
     }
 
-    function aplicarEstado(s) {
-        document.getElementById('part-name').value = s.part || "";
-        document.getElementById('char-select').value = s.char || "DRUZION";
-        nivelGlobal = s.lvl || 1;
-        document.getElementById('lvl-display').innerText = nivelGlobal;
-        document.getElementById('xp').value = s.xp || 0;
-        document.getElementById('ouro').value = s.ouro || 0;
-        document.getElementById('diamante').value = s.diamante || 0;
-        document.getElementById('mochila').value = s.mochila || "";
-        s.equips.forEach((e, i) => {
-            document.getElementById(`eq_n_${i+1}`).value = e.n || "";
-            document.getElementById(`eq_h_${i+1}`).value = e.h || 0;
-            document.getElementById(`eq_d_${i+1}`).value = e.d || 0;
-            document.getElementById(`eq_s_${i+1}`).value = e.s || 0;
-            document.getElementById(`eq_e_${i+1}`).value = e.e || "";
-        });
-        atualizarUI(s);
-    }
-
     function carregar() {
-        const salvo = localStorage.getItem('ficha_rpg_vAuto');
-        if(salvo) aplicarEstado(JSON.parse(salvo));
-        else salvar();
+        const salvo = localStorage.getItem('ficha_rpg_v7');
+        if(salvo) {
+            const s = JSON.parse(salvo);
+            xpTotalGlobal = s.xpTotal || 0;
+            document.getElementById('xp-input').value = xpTotalGlobal;
+            atualizarUI(s); // Carrega campos visuais
+            // Reaplica todos os campos manualmente para o UI
+            document.getElementById('part-name').value = s.part || "";
+            document.getElementById('char-select').value = s.char || "DRUZION";
+            document.getElementById('ouro').value = s.ouro || 0;
+            document.getElementById('diamante').value = s.diamante || 0;
+            document.getElementById('mochila').value = s.mochila || "";
+            s.equips.forEach((e, i) => {
+                document.getElementById(`eq_n_${i+1}`).value = e.n || "";
+                document.getElementById(`eq_h_${i+1}`).value = e.h || 0;
+                document.getElementById(`eq_d_${i+1}`).value = e.d || 0;
+                document.getElementById(`eq_s_${i+1}`).value = e.s || 0;
+                document.getElementById(`eq_e_${i+1}`).value = e.e || "";
+            });
+            atualizarUI(s);
+        } else { salvar(); }
     }
 
-    function resetar() { if(confirm("Apagar tudo?")) { localStorage.removeItem('ficha_rpg_vAuto'); location.reload(); } }
+    function resetar() { if(confirm("Deseja apagar tudo?")) { localStorage.clear(); location.reload(); } }
     window.onload = carregar;
 </script>
 </body>
