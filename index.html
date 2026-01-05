@@ -3,53 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Batalha RPG - Pro</title>
+    <title>Ficha de Batalha RPG - Full View</title>
     <style>
         :root {
             --bg: #0d1117; --card: #161b22; --primary: #58a6ff; --text: #c9d1d9; --accent: #238636; --border: #30363d;
         }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
         
-        /* Aumentei a largura máxima de 500px para 900px */
-        .wrapper { width: 100%; max-width: 900px; background: var(--card); border-radius: 12px; padding: 25px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); border: 1px solid var(--border); }
+        .wrapper { width: 100%; max-width: 800px; background: var(--card); border-radius: 12px; padding: 25px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); border: 1px solid var(--border); }
         
-        h2 { text-align: center; color: var(--primary); margin-bottom: 25px; text-transform: uppercase; letter-spacing: 3px; font-size: 2em; }
+        h2 { text-align: center; color: var(--primary); margin-bottom: 25px; text-transform: uppercase; letter-spacing: 3px; font-size: 1.8em; }
         
         .field-group { margin-bottom: 15px; }
         label { display: block; font-size: 0.8em; color: #8b949e; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; }
         input, select, textarea { width: 100%; padding: 12px; background: #010409; border: 1px solid var(--border); color: white; border-radius: 6px; box-sizing: border-box; font-size: 1em; }
-        textarea { resize: vertical; min-height: 120px; font-family: inherit; }
+        textarea { resize: vertical; min-height: 100px; font-family: inherit; }
 
-        /* Grade de Atributos - Agora com 3 colunas para não espremer */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0; }
-        .stat-box { background: #0d1117; padding: 15px; border-radius: 10px; border: 1px solid var(--border); text-align: center; transition: 0.3s; }
-        .stat-box:hover { border-color: var(--primary); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0; }
+        .stat-box { background: #0d1117; padding: 15px; border-radius: 10px; border: 1px solid var(--border); text-align: center; }
         .stat-box.total { border-bottom: 4px solid var(--accent); }
-        .stat-num { font-size: 1.8em; font-weight: bold; display: block; color: #fff; }
-        .stat-label { font-size: 0.7em; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-num { font-size: 1.6em; font-weight: bold; display: block; color: #fff; }
+        .stat-label { font-size: 0.65em; color: #8b949e; text-transform: uppercase; }
 
-        /* Layout de Equipamentos em Grade */
-        .equip-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
-        .equip-card { background: #0d1117; border: 1px solid var(--border); border-radius: 10px; padding: 15px; }
-        .equip-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-        .equip-header input { padding: 8px; font-size: 0.9em; text-align: center; }
+        /* Nova Estrutura de Equipamentos em Lista */
+        .equip-list { display: flex; flex-direction: column; gap: 20px; }
+        .equip-item-label { color: var(--primary); font-size: 0.9em; font-weight: bold; margin-bottom: 5px; display: block; }
+        .equip-card { background: #0d1117; border: 1px solid var(--border); border-radius: 10px; padding: 15px; width: 100%; box-sizing: border-box; }
+        
+        .equip-header { display: grid; grid-template-columns: 3fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .equip-header input { padding: 10px; font-size: 0.95em; text-align: center; }
         .equip-header input[type="text"] { text-align: left; }
-        .equip-effect { font-size: 0.85em; background: #161b22 !important; border-style: dashed !important; color: #aaa; }
+        
+        .equip-effect { font-size: 0.9em; background: #161b22 !important; border: 1px dashed #444 !important; color: #aaa; margin-top: 5px; }
 
         .xp-bar-container { background: #30363d; height: 12px; border-radius: 6px; margin-top: 10px; overflow: hidden; }
         .xp-bar-fill { background: linear-gradient(90deg, #238636, #2ea043); height: 100%; width: 0%; transition: width 0.5s; }
 
-        .section-title { border-left: 4px solid var(--primary); padding-left: 10px; margin: 35px 0 15px; color: var(--primary); font-size: 1.1em; font-weight: bold; text-transform: uppercase; }
+        .section-title { border-left: 4px solid var(--primary); padding-left: 10px; margin: 35px 0 15px; color: var(--primary); font-size: 1em; font-weight: bold; text-transform: uppercase; }
         
         .skill-card { background: #0d1117; padding: 15px; border-radius: 10px; margin-top: 10px; border: 1px solid var(--border); }
         .skill-name { font-weight: bold; color: var(--primary); font-size: 1em; }
         .skill-desc { font-size: 0.9em; color: #8b949e; margin-top: 8px; line-height: 1.5; }
         .skill-lvl { float: right; font-size: 0.75em; background: #21262d; padding: 3px 8px; border-radius: 5px; color: var(--primary); }
 
-        .btn-reset { background: #f85149; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; cursor: pointer; margin-top: 30px; font-weight: bold; font-size: 1em; transition: 0.3s; }
-        .btn-reset:hover { background: #da3633; }
+        .btn-reset { background: #f85149; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; cursor: pointer; margin-top: 30px; font-weight: bold; opacity: 0.8; }
 
-        @media (max-width: 600px) {
+        @media (max-width: 500px) {
             .equip-header { grid-template-columns: 1fr 1fr 1fr; }
             .equip-header input[type="text"] { grid-column: span 3; }
         }
@@ -60,40 +59,36 @@
 <div class="wrapper">
     <h2>🛡️ FICHA DE BATALHA</h2>
 
-    <div class="stats-grid" style="grid-template-columns: 2fr 1.5fr;">
-        <div class="field-group">
-            <label>🌀 Nome do Participante</label>
-            <input type="text" id="part-name" placeholder="Digite seu nome..." oninput="salvar()">
-        </div>
-        <div class="field-group">
-            <label>😎 Personagem / Classe</label>
-            <select id="char-select" onchange="salvar()">
-                <option value="DRUZION">DRUZION (Curandeiro)</option>
-                <option value="GUILBERT">GUILBERT (Arqueiro)</option>
-                <option value="MELKYOR">MELKYOR (Mago)</option>
-                <option value="SCAR">SCAR (Guerreiro)</option>
-                <option value="DEWPEE">DEWPEE (Pistoleiro)</option>
-            </select>
-        </div>
+    <div class="field-group">
+        <label>🌀 Nome do Participante</label>
+        <input type="text" id="part-name" placeholder="Digite seu nome..." oninput="salvar()">
+    </div>
+
+    <div class="field-group">
+        <label>😎 Personagem / Classe</label>
+        <select id="char-select" onchange="salvar()">
+            <option value="DRUZION">DRUZION (Curandeiro)</option>
+            <option value="GUILBERT">GUILBERT (Arqueiro)</option>
+            <option value="MELKYOR">MELKYOR (Mago)</option>
+            <option value="SCAR">SCAR (Guerreiro)</option>
+            <option value="DEWPEE">DEWPEE (Pistoleiro)</option>
+        </select>
     </div>
 
     <div class="stats-grid">
-        <div class="field-group">
+        <div class="field-group" style="margin:0">
             <label>🔺 Nível</label>
             <input type="number" id="lvl" value="1" min="1" oninput="salvar()">
         </div>
-        <div class="field-group">
+        <div class="field-group" style="margin:0">
             <label>✨ XP Atual</label>
             <input type="number" id="xp" value="0" oninput="salvar()">
         </div>
-        <div class="field-group" style="grid-column: span 1;">
-             <label style="visibility: hidden;">.</label>
-             <div id="xp-text" style="font-size: 0.8em; text-align: right; color: #8b949e; margin-top: 10px;">XP Necessário: 500</div>
-             <div class="xp-bar-container"><div class="xp-bar-fill" id="xp-fill"></div></div>
-        </div>
     </div>
+    <div id="xp-text" style="font-size: 0.75em; text-align: right; color: #8b949e; margin-top: 5px;">XP Necessário: 500</div>
+    <div class="xp-bar-container"><div class="xp-bar-fill" id="xp-fill"></div></div>
 
-    <div class="section-title">📊 Atributos Totais (Base + Equipamentos)</div>
+    <div class="section-title">📊 ATRIBUTOS TOTAIS</div>
     <div class="stats-grid">
         <div class="stat-box total">
             <span class="stat-label">💖 Vida Total</span>
@@ -109,28 +104,28 @@
         </div>
         <div class="stat-box">
             <span class="stat-label">💰 Ouro</span>
-            <input type="number" id="ouro" value="0" style="background:transparent; border:none; color:white; font-size:1.5em; font-weight:bold; text-align:center; width:100%" oninput="salvar()">
+            <input type="number" id="ouro" value="0" style="background:transparent; border:none; color:white; font-size:1.3em; font-weight:bold; text-align:center; width:100%" oninput="salvar()">
         </div>
-        <div class="stat-box">
+        <div class="stat-box" style="grid-column: span 1;">
             <span class="stat-label">💎 Diamantes</span>
-            <input type="number" id="diamante" value="0" style="background:transparent; border:none; color:#00ffcc; font-size:1.5em; font-weight:bold; text-align:center; width:100%" oninput="salvar()">
+            <input type="number" id="diamante" value="0" style="background:transparent; border:none; color:#00ffcc; font-size:1.3em; font-weight:bold; text-align:center; width:100%" oninput="salvar()">
         </div>
     </div>
 
-    <div class="section-title">🔶 Equipamentos (Slots 1-4)</div>
-    <div class="equip-grid" id="equip-container">
+    <div class="section-title">🔶 EQUIPAMENTOS ATIVOS</div>
+    <div class="equip-list" id="equip-container">
         <!-- Slots gerados via JS -->
     </div>
 
-    <div class="section-title">🎒 Mochila / Inventário Geral</div>
+    <div class="section-title">🎒 MOCHILA (INVENTÁRIO GERAL)</div>
     <div class="field-group">
-        <textarea id="mochila" placeholder="Escreva aqui poções, itens de missão, diamantes extras, pergaminhos..." oninput="salvar()"></textarea>
+        <textarea id="mochila" placeholder="Poções, itens de missão, tesouros, diamantes extras..." oninput="salvar()"></textarea>
     </div>
 
-    <div class="section-title">💫 Habilidades Desbloqueadas</div>
+    <div class="section-title">💫 HABILIDADES DESBLOQUEADAS</div>
     <div id="skills-container"></div>
 
-    <button class="btn-reset" onclick="resetar()">LIMPAR FICHA (RESET TOTAL)</button>
+    <button class="btn-reset" onclick="resetar()">LIMPAR FICHA (RESET)</button>
 </div>
 
 <script>
@@ -150,18 +145,20 @@
         ]
     };
 
-    // Gerar slots de equipamentos de forma mais limpa
     const equipContainer = document.getElementById('equip-container');
     for(let i=1; i<=4; i++) {
         equipContainer.innerHTML += `
-            <div class="equip-card">
-                <div class="equip-header">
-                    <input type="text" id="eq_n_${i}" placeholder="Nome do Item ${i}" oninput="salvar()">
-                    <input type="number" id="eq_h_${i}" placeholder="+HP" oninput="salvar()">
-                    <input type="number" id="eq_d_${i}" placeholder="+Dmg" oninput="salvar()">
-                    <input type="number" id="eq_s_${i}" placeholder="+Esc" oninput="salvar()">
+            <div>
+                <span class="equip-item-label">🔶 EQUIPAMENTO ${i}:</span>
+                <div class="equip-card">
+                    <div class="equip-header">
+                        <input type="text" id="eq_n_${i}" placeholder="Nome do Equipamento" oninput="salvar()">
+                        <input type="number" id="eq_h_${i}" placeholder="+HP" oninput="salvar()">
+                        <input type="number" id="eq_d_${i}" placeholder="+DMG" oninput="salvar()">
+                        <input type="number" id="eq_s_${i}" placeholder="+ESC" oninput="salvar()">
+                    </div>
+                    <input type="text" class="equip-effect" id="eq_e_${i}" placeholder="Efeito especial ou descrição do item..." oninput="salvar()">
                 </div>
-                <input type="text" class="equip-effect" id="eq_e_${i}" placeholder="Efeito especial ou descrição..." oninput="salvar()">
             </div>`;
     }
 
@@ -185,7 +182,7 @@
                 e: document.getElementById(`eq_e_${i}`).value
             });
         }
-        localStorage.setItem('ficha_rpg_v3', JSON.stringify(estado));
+        localStorage.setItem('ficha_rpg_v4', JSON.stringify(estado));
         atualizarUI(estado);
     }
 
@@ -215,14 +212,14 @@
                     <div class="skill-card">
                         <span class="skill-lvl">Nível ${sk.lvl}+</span>
                         <span class="skill-name">⚔️ ${sk[s.char]}</span>
-                        <div class="skill-desc">Habilidade especial de classe desbloqueada.</div>
+                        <div class="skill-desc">Habilidade especial desbloqueada.</div>
                     </div>`;
             }
         });
     }
 
     function carregar() {
-        const salvo = localStorage.getItem('ficha_rpg_v3');
+        const salvo = localStorage.getItem('ficha_rpg_v4');
         if(salvo) {
             const s = JSON.parse(salvo);
             document.getElementById('part-name').value = s.part || "";
@@ -243,7 +240,7 @@
         } else { salvar(); }
     }
 
-    function resetar() { if(confirm("Apagar todos os dados da ficha?")) { localStorage.removeItem('ficha_rpg_v3'); location.reload(); } }
+    function resetar() { if(confirm("Apagar todos os dados da ficha?")) { localStorage.removeItem('ficha_rpg_v4'); location.reload(); } }
     window.onload = carregar;
 </script>
 </body>
